@@ -37,8 +37,16 @@ const QuizMode = ({ primeMinistersData }) => {
     setCurrentQuestionIndex(0);
     setAnswers([]);
     setQuizState('playing');
+    
+    // 最初の問題が順序当ての場合、初期化
+    if (generatedQuestions[0] && generatedQuestions[0].type === 'order') {
+      setOrderAnswer([...generatedQuestions[0].primeMinistersList]);
+    }
   };
 
+  // 順序当てクイズ用の状態
+  const [orderAnswer, setOrderAnswer] = useState([]);
+  
   // 解答を選択
   const handleAnswerSelect = (answer) => {
     if (showFeedback) return; // フィードバック表示中は選択不可
@@ -57,13 +65,47 @@ const QuizMode = ({ primeMinistersData }) => {
     }]);
   };
 
+  // 順序当てクイズの並び替え
+  const moveOrderItem = (index, direction) => {
+    if (showFeedback) return;
+    
+    const newOrder = [...orderAnswer];
+    const newIndex = index + direction;
+    
+    if (newIndex < 0 || newIndex >= newOrder.length) return;
+    
+    [newOrder[index], newOrder[newIndex]] = [newOrder[newIndex], newOrder[index]];
+    setOrderAnswer(newOrder);
+  };
+
+  // 順序当てクイズの解答確定
+  const submitOrderAnswer = () => {
+    const currentQuestion = questions[currentQuestionIndex];
+    const userOrder = orderAnswer.map(pm => pm.id).join(',');
+    const correctOrder = currentQuestion.correctOrder.join(',');
+    const isCorrect = userOrder === correctOrder;
+    
+    setShowFeedback(true);
+    setAnswers([...answers, {
+      question: currentQuestion,
+      selectedAnswer: userOrder,
+      isCorrect
+    }]);
+  };
+
   // 次の問題へ
   const goToNextQuestion = () => {
     setShowFeedback(false);
     setSelectedAnswer(null);
     
     if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
+      const nextIndex = currentQuestionIndex + 1;
+      setCurrentQuestionIndex(nextIndex);
+      
+      // 次の問題が順序当ての場合、初期化
+      if (questions[nextIndex].type === 'order') {
+        setOrderAnswer([...questions[nextIndex].primeMinistersList]);
+      }
     } else {
       // クイズ終了
       finishQuiz();
@@ -283,50 +325,118 @@ const QuizMode = ({ primeMinistersData }) => {
           </div>
 
           {/* 選択肢 */}
-          <div className="space-y-3">
-            {currentQuestion.options.map((option, index) => {
-              const isSelected = selectedAnswer === option;
-              const isCorrect = option === currentQuestion.correctAnswer;
-              const showResult = showFeedback && (isSelected || isCorrect);
-              
-              let buttonClass = 'w-full p-4 rounded-lg border-2 text-left font-semibold transition-all ';
-              
-              if (showResult) {
-                if (isCorrect) {
-                  buttonClass += 'border-green-500 bg-green-50 text-green-700';
-                } else if (isSelected) {
-                  buttonClass += 'border-red-500 bg-red-50 text-red-700';
-                }
-              } else {
-                buttonClass += 'border-gray-200 hover:border-blue-500 hover:bg-blue-50';
-              }
-
-              return (
-                <button
-                  key={index}
-                  onClick={() => handleAnswerSelect(option)}
-                  disabled={showFeedback}
-                  className={buttonClass}
-                >
-                  <div className="flex items-center justify-between">
-                    <span>{option}</span>
-                    {showResult && (
-                      <span>
-                        {isCorrect ? (
-                          <Check size={24} className="text-green-600" />
-                        ) : isSelected ? (
-                          <X size={24} className="text-red-600" />
-                        ) : null}
-                      </span>
-                    )}
+          {currentQuestion.type === 'order' ? (
+            // 順序当てクイズのUI
+            <div>
+              <div className="space-y-3 mb-4">
+                {orderAnswer.map((pm, index) => (
+                  <div
+                    key={pm.id}
+                    className={`p-4 rounded-lg border-2 ${
+                      showFeedback
+                        ? currentQuestion.correctOrder[index] === pm.id
+                          ? 'border-green-500 bg-green-50'
+                          : 'border-red-500 bg-red-50'
+                        : 'border-gray-300 bg-white'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="font-bold text-gray-900">
+                          {index + 1}. {pm.name}
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          {pm.order} ({pm.termStart}年〜{pm.termEnd}年)
+                        </div>
+                      </div>
+                      {!showFeedback && (
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => moveOrderItem(index, -1)}
+                            disabled={index === 0}
+                            className="px-3 py-1 bg-blue-100 text-blue-700 rounded disabled:opacity-30 disabled:cursor-not-allowed"
+                          >
+                            ↑
+                          </button>
+                          <button
+                            onClick={() => moveOrderItem(index, 1)}
+                            disabled={index === orderAnswer.length - 1}
+                            className="px-3 py-1 bg-blue-100 text-blue-700 rounded disabled:opacity-30 disabled:cursor-not-allowed"
+                          >
+                            ↓
+                          </button>
+                        </div>
+                      )}
+                      {showFeedback && (
+                        <span>
+                          {currentQuestion.correctOrder[index] === pm.id ? (
+                            <Check size={24} className="text-green-600" />
+                          ) : (
+                            <X size={24} className="text-red-600" />
+                          )}
+                        </span>
+                      )}
+                    </div>
                   </div>
+                ))}
+              </div>
+              
+              {!showFeedback && (
+                <button
+                  onClick={submitOrderAnswer}
+                  className="w-full py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-colors"
+                >
+                  解答する
                 </button>
-              );
-            })}
-          </div>
+              )}
+            </div>
+          ) : (
+            // 名前当て・功績当てクイズのUI
+            <div className="space-y-3">
+              {currentQuestion.options.map((option, index) => {
+                const isSelected = selectedAnswer === option;
+                const isCorrect = option === currentQuestion.correctAnswer;
+                const showResult = showFeedback && (isSelected || isCorrect);
+                
+                let buttonClass = 'w-full p-4 rounded-lg border-2 text-left font-semibold transition-all ';
+                
+                if (showResult) {
+                  if (isCorrect) {
+                    buttonClass += 'border-green-500 bg-green-50 text-green-700';
+                  } else if (isSelected) {
+                    buttonClass += 'border-red-500 bg-red-50 text-red-700';
+                  }
+                } else {
+                  buttonClass += 'border-gray-200 hover:border-blue-500 hover:bg-blue-50';
+                }
+
+                return (
+                  <button
+                    key={index}
+                    onClick={() => handleAnswerSelect(option)}
+                    disabled={showFeedback}
+                    className={buttonClass}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span>{option}</span>
+                      {showResult && (
+                        <span>
+                          {isCorrect ? (
+                            <Check size={24} className="text-green-600" />
+                          ) : isSelected ? (
+                            <X size={24} className="text-red-600" />
+                          ) : null}
+                        </span>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           {/* フィードバック */}
-          {showFeedback && (
+          {showFeedback && currentQuestion.type !== 'order' && (
             <div className={`mt-6 p-4 rounded-lg ${
               selectedAnswer === currentQuestion.correctAnswer
                 ? 'bg-green-50 border-2 border-green-500'
@@ -351,6 +461,32 @@ const QuizMode = ({ primeMinistersData }) => {
                   （{currentQuestion.primeMinister.order}）
                 </p>
               )}
+            </div>
+          )}
+          
+          {/* 順序当てクイズのフィードバック */}
+          {showFeedback && currentQuestion.type === 'order' && (
+            <div className={`mt-6 p-4 rounded-lg ${
+              answers[answers.length - 1]?.isCorrect
+                ? 'bg-green-50 border-2 border-green-500'
+                : 'bg-red-50 border-2 border-red-500'
+            }`}>
+              <div className="flex items-center gap-2 mb-2">
+                {answers[answers.length - 1]?.isCorrect ? (
+                  <>
+                    <Check size={24} className="text-green-600" />
+                    <span className="font-bold text-green-700">正解！</span>
+                  </>
+                ) : (
+                  <>
+                    <X size={24} className="text-red-600" />
+                    <span className="font-bold text-red-700">不正解</span>
+                  </>
+                )}
+              </div>
+              <p className="text-sm text-gray-700">
+                正しい順序は在任の古い順です
+              </p>
             </div>
           )}
         </div>
