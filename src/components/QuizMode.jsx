@@ -285,6 +285,12 @@ const QuizMode = ({ primeMinistersData }) => {
   // クイズプレイ画面
   if (quizState === 'playing' && questions.length > 0) {
     const currentQuestion = questions[currentQuestionIndex];
+    
+    // 順序当てクイズで orderAnswer が空の場合は初期化
+    if (currentQuestion.type === 'order' && (!orderAnswer || orderAnswer.length === 0)) {
+      setOrderAnswer([...currentQuestion.primeMinistersList]);
+    }
+    
     const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
 
     return (
