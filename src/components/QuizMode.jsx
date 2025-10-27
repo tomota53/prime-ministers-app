@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Check, X, RotateCcw, Trophy, ArrowRight, Star, Users } from 'lucide-react';
 import { generateQuizSet } from '../utils/quizUtils';
 import useLocalStorage from '../hooks/useLocalStorage';
@@ -46,6 +46,16 @@ const QuizMode = ({ primeMinistersData }) => {
 
   // 順序当てクイズ用の状態
   const [orderAnswer, setOrderAnswer] = useState([]);
+  
+  // 順序当てクイズの初期化（useEffectで安全に）
+  useEffect(() => {
+    if (quizState === 'playing' && questions.length > 0 && currentQuestionIndex < questions.length) {
+      const currentQuestion = questions[currentQuestionIndex];
+      if (currentQuestion.type === 'order') {
+        setOrderAnswer([...currentQuestion.primeMinistersList]);
+      }
+    }
+  }, [currentQuestionIndex, questions, quizState]);
   
   // 解答を選択
   const handleAnswerSelect = (answer) => {
@@ -285,13 +295,19 @@ const QuizMode = ({ primeMinistersData }) => {
   // クイズプレイ画面
   if (quizState === 'playing' && questions.length > 0) {
     const currentQuestion = questions[currentQuestionIndex];
-    
-    // 順序当てクイズで orderAnswer が空の場合は初期化
-    if (currentQuestion.type === 'order' && (!orderAnswer || orderAnswer.length === 0)) {
-      setOrderAnswer([...currentQuestion.primeMinistersList]);
-    }
-    
     const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+    
+    // 順序当てクイズでorderAnswerが空の場合は読み込み中を表示
+    if (currentQuestion.type === 'order' && (!orderAnswer || orderAnswer.length === 0)) {
+      return (
+        <div className="max-w-4xl mx-auto px-4 py-6">
+          <div className="text-center py-12">
+            <div className="text-4xl mb-4">⏳</div>
+            <p className="text-gray-600">問題を準備中...</p>
+          </div>
+        </div>
+      );
+    }
 
     return (
       <div className="max-w-4xl mx-auto px-4 py-6">
