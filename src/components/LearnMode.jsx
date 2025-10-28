@@ -272,7 +272,40 @@ const LearnMode = ({ primeMinistersData }) => {
             {currentCard.relatedEvents}
           </p>
         </div>
+         {/* おすすめ参考書 */}
+<div className="mt-6 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+  <h3 className="font-bold text-lg mb-3 flex items-center gap-2">
+    <span className="text-2xl">📚</span>
+    もっと詳しく学ぶ
+  </h3>
+  
+  <a
+    href="https://amzn.to/4nsYMLt"
+    target="_blank"
+    rel="noopener noreferrer"
+    className="block p-3 bg-white rounded-lg hover:bg-gray-50 transition-colors border border-gray-200"
+  >
+    <div className="flex justify-between items-start">
+      <div className="flex-1">
+        <p className="text-sm font-semibold text-gray-900">
+          社会コアプラス: 中学入試小5・6年生対象 (サピックスメソッド)
+        </p>
+        <p className="text-xs text-gray-600 mt-1">
+          1,572円
+        </p>
       </div>
+      <div className="ml-2 text-blue-600">→</div>
+    </div>
+  </a>
+
+  <p className="text-xs text-gray-500 mt-3">
+    ※Amazonアソシエイトリンク。購入により当サイトに収益が入ります。
+  </p>
+</div>
+      </div>
+
+     
+
 
       {/* ナビゲーションボタン */}
       <div className="flex gap-4 mb-4">
