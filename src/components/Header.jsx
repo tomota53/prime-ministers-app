@@ -1,11 +1,12 @@
-import { BookOpen, Trophy, List, Sparkles, Book } from 'lucide-react';
+import { BookOpen, Trophy, List, Sparkles, Book, ShoppingBag } from 'lucide-react';
 
 const Header = ({ currentMode, onModeChange, progress }) => {
   const modes = [
     { id: 'study', label: '学習', icon: BookOpen },
     { id: 'quiz', label: 'クイズ', icon: Trophy },
     { id: 'list', label: '一覧', icon: List },
-    { id: 'glossary', label: '用語集', icon: Book }
+    { id: 'glossary', label: '用語集', icon: Book },
+    { id: 'materials', label: '📚教材', icon: ShoppingBag }
   ];
 
   return (
