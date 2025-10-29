@@ -7,6 +7,7 @@ import ListView from './components/ListView';
 import DailyPM from './components/DailyPM';
 import GlossaryView from './components/GlossaryView';
 import MaterialsPage from './components/MaterialsPage';
+import Footer from './components/Footer';
 import primeMinistersData from './data/primeministers.json';
 import allPrimeMinistersData from './data/allprimeministers.json';
 import useLocalStorage from './hooks/useLocalStorage';
@@ -105,6 +106,9 @@ function App() {
           <MaterialsPage />
         )}
       </main>
+
+      {/* フッター */}
+      <Footer />
     </div>
   );
 }
