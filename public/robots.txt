@@ -1,0 +1,14 @@
+# robots.txt for 首相マスター (Prime Ministers App)
+
+User-agent: *
+Allow: /
+
+# サイトマップの場所
+Sitemap: https://prime-ministers-app.vercel.app/sitemap.xml
+
+# クロール制限（必要に応じて調整）
+Crawl-delay: 1
+
+# 特定のパスを除外する場合（現在は全て許可）
+# Disallow: /admin/
+# Disallow: /private/
